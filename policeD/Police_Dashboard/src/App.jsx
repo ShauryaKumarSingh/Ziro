@@ -12,21 +12,39 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const SOCKET_SERVER_URL = "http://localhost:5000";
+const SOCKET_SERVER_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function App() {
   const [alerts, setAlerts] = useState({}); // Use object: { touristId: alertData }
   const [selectedAlertId, setSelectedAlertId] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState('');
   const mapRef = useRef(null); // Reference to the map instance
 
-  useEffect(() => {
+  const authenticate = () => {
+    if (!authToken.trim()) {
+      alert('Please enter an authentication token');
+      return;
+    }
+
     const socket = io(SOCKET_SERVER_URL);
 
     socket.on('connect', () => {
       console.log('✅ Connected to real-time server!');
+      socket.emit('authenticate', { token: authToken });
+    });
+
+    socket.on('authenticated', () => {
+      console.log('✅ Dashboard authenticated successfully!');
+      setIsAuthenticated(true);
       socket.emit('joinDashboard');
     });
 
+    socket.on('unauthorized', (data) => {
+      console.error('❌ Authentication failed:', data.message);
+      alert('Authentication failed: ' + data.message);
+      socket.disconnect();
+    });
 
     socket.on('new-alert', (newAlert) => {
       console.log('🚨 New SOS Alert Received:', newAlert);
@@ -82,6 +100,40 @@ export default function App() {
   };
 
   const alertList = Object.values(alerts);
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ padding: '20px', maxWidth: '400px', margin: '50px auto' }}>
+        <h2>Police Dashboard Authentication</h2>
+        <p>Enter your authentication token to access the dashboard:</p>
+        <input
+          type="password"
+          value={authToken}
+          onChange={(e) => setAuthToken(e.target.value)}
+          placeholder="Enter JWT token"
+          style={{ width: '100%', padding: '10px', margin: '10px 0', fontSize: '16px' }}
+        />
+        <button
+          onClick={authenticate}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Authenticate
+        </button>
+        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+          Note: Obtain authentication token from system administrator
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>

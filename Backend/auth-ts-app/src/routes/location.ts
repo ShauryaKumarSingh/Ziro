@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middlewares/auth';
 import Alert from '../models/Alert';
+import { validate, locationSchema } from '../middlewares/validation';
+
 const router = Router();
 
 // ===================================================================
@@ -48,7 +50,7 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 // This receives a location and checks it against all danger zones.
 // Endpoint: POST /api/location/check
 // ===================================================================
-router.post('/check', authMiddleware, (req: AuthRequest, res: Response) => {
+router.post('/check', authMiddleware, validate(locationSchema), (req: AuthRequest, res: Response) => {
   const { latitude, longitude } = req.body;
 
   if (!latitude || !longitude) {
@@ -78,7 +80,7 @@ router.post('/check', authMiddleware, (req: AuthRequest, res: Response) => {
 
 // Endpoint: POST /api/location/update
 // Receives continuous location updates during an active SOS
-router.post('/update', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/update', authMiddleware, validate(locationSchema), async (req: AuthRequest, res: Response) => {
   const { latitude, longitude } = req.body;
   const userId = req.user?.id;
 

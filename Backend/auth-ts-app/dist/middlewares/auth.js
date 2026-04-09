@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authMiddleware = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = "MY_SECRET_KEY"; // move to .env later
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_change_in_production";
 const authMiddleware = (req, res, next) => {
     const token = req.header("Authorization")?.split(" ")[1]; // "Bearer <token>"
     if (!token)

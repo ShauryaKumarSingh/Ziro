@@ -7,10 +7,11 @@ const express_1 = require("express");
 const auth_1 = require("../middlewares/auth");
 const Alert_1 = __importDefault(require("../models/Alert"));
 const User_1 = __importDefault(require("../models/User"));
+const validation_1 = require("../middlewares/validation");
 const router = (0, express_1.Router)();
 // ENDPOINT 1: Triggers the SOS Alert
 // POST /api/sos/trigger
-router.post('/trigger', auth_1.authMiddleware, async (req, res) => {
+router.post('/trigger', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.sosSchema), async (req, res) => {
     const { latitude, longitude } = req.body;
     const userId = req.user?.id;
     if (!latitude || !longitude) {

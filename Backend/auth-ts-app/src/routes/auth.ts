@@ -5,12 +5,13 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 import type { IUser } from "../models/User";
 import { authMiddleware, AuthRequest } from "../middlewares/auth";
+import { validate, signupSchema, loginSchema } from "../middlewares/validation";
 
 const router = Router();
-const JWT_SECRET = "MY_SECRET_KEY"; // ⚠️ later move to .env
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_change_in_production";
 
 // =================== SIGNUP ===================
-router.post("/signup", async (req: Request, res: Response) => {
+router.post("/signup", validate(signupSchema), async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
 
@@ -33,7 +34,7 @@ router.post("/signup", async (req: Request, res: Response) => {
 });
 
 // =================== LOGIN ===================
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", validate(loginSchema), async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 

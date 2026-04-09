@@ -2,12 +2,13 @@ import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middlewares/auth';
 import Alert from '../models/Alert';
 import User from '../models/User';
+import { validate, sosSchema } from '../middlewares/validation';
 
 const router = Router();
 
 // ENDPOINT 1: Triggers the SOS Alert
 // POST /api/sos/trigger
-router.post('/trigger', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/trigger', authMiddleware, validate(sosSchema), async (req: AuthRequest, res: Response) => {
   const { latitude, longitude } = req.body;
   const userId = req.user?.id;
 

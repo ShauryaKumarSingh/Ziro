@@ -103,20 +103,19 @@ app.use((req, res) => {
 
 // Socket.IO connection logic
 io.on('connection', (socket) => {
-  // 'socket' is defined here. All code using 'socket' MUST be inside these braces.
-  console.log('✅ A client connected to sockets:', socket.id);
+  console.log('✅ A client connected to sockets');
 
-  // We are keeping this open/unauthenticated for your demo so the map works instantly
-  socket.on('joinDashboard', () => {
-    console.log('📢 Police Dashboard joined the tracking room');
-    socket.join('dashboard-room');
-    
-    // We emit this so the dashboard frontend knows it's connected
-    socket.emit('authenticated'); 
-  });
-
-  socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+  // Authenticate dashboard connections
+  socket.on('authenticate', (data: { token: string }) => {
+    try {
+      const decoded = jwt.verify(data.token, process.env.JWT_SECRET || "fallback_secret_change_in_production") as { id: string };
+      socket.data.userId = decoded.id;
+      socket.emit('authenticated');
+      console.log('✅ Dashboard authenticated');
+    } catch (err) {
+      socket.emit('unauthorized', { message: 'Invalid token' });
+      socket.disconnect();
+    }
   });
 
   // Only allow authenticated clients to join dashboard

@@ -3,10 +3,11 @@ import { authMiddleware, AuthRequest } from "../middlewares/auth";
 import KYC from "../models/Kyc";
 import User from "../models/User";
 import { nanoid } from "nanoid"; // 💡 Import nanoid
+import { validate, kycSchema } from "../middlewares/validation";
 
 const router = Router();
 
-router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post("/", authMiddleware, validate(kycSchema), async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
 
@@ -18,8 +19,8 @@ router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
 
     const { aadhaar, dob, gender, phone, email, emergency_contact, trip_itinerary } = req.body;
 
-    // For a hackathon MVP, auto-verifying is fine.
-    // In a real app, this would be `verified: false` until an admin approves it.
+    // For production security, KYC requires manual admin verification
+    // In a real app, an admin would review and approve KYC submissions
     const kycData = await KYC.create({
       userId,
       aadhaar,
@@ -29,7 +30,7 @@ router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
       email,
       emergency_contact,
       trip_itinerary,
-      verified: true, 
+      verified: false, // Requires admin verification
     });
 
     // 💡 2. Generate a more robust, unique Tourist ID

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middlewares/auth");
 const Alert_1 = __importDefault(require("../models/Alert"));
+const validation_1 = require("../middlewares/validation");
 const router = (0, express_1.Router)();
 // ===================================================================
 // STEP 1: DEFINE YOUR DANGER ZONES
@@ -48,7 +49,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
 // This receives a location and checks it against all danger zones.
 // Endpoint: POST /api/location/check
 // ===================================================================
-router.post('/check', auth_1.authMiddleware, (req, res) => {
+router.post('/check', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.locationSchema), (req, res) => {
     const { latitude, longitude } = req.body;
     if (!latitude || !longitude) {
         return res.status(400).json({ msg: 'Latitude and longitude are required.' });
@@ -71,7 +72,7 @@ router.post('/check', auth_1.authMiddleware, (req, res) => {
 // ... existing /check route ...
 // Endpoint: POST /api/location/update
 // Receives continuous location updates during an active SOS
-router.post('/update', auth_1.authMiddleware, async (req, res) => {
+router.post('/update', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.locationSchema), async (req, res) => {
     const { latitude, longitude } = req.body;
     const userId = req.user?.id;
     try {

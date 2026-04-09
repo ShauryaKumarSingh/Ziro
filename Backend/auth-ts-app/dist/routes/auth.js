@@ -8,10 +8,11 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 const auth_1 = require("../middlewares/auth");
+const validation_1 = require("../middlewares/validation");
 const router = (0, express_1.Router)();
-const JWT_SECRET = "MY_SECRET_KEY"; // ⚠️ later move to .env
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_change_in_production";
 // =================== SIGNUP ===================
-router.post("/signup", async (req, res) => {
+router.post("/signup", (0, validation_1.validate)(validation_1.signupSchema), async (req, res) => {
     try {
         const { username, email, password } = req.body;
         // check existing user
@@ -31,7 +32,7 @@ router.post("/signup", async (req, res) => {
     }
 });
 // =================== LOGIN ===================
-router.post("/login", async (req, res) => {
+router.post("/login", (0, validation_1.validate)(validation_1.loginSchema), async (req, res) => {
     try {
         const { email, password } = req.body;
         // check user

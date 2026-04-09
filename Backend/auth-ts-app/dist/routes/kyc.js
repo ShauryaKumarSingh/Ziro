@@ -8,8 +8,9 @@ const auth_1 = require("../middlewares/auth");
 const Kyc_1 = __importDefault(require("../models/Kyc"));
 const User_1 = __importDefault(require("../models/User"));
 const nanoid_1 = require("nanoid"); // 💡 Import nanoid
+const validation_1 = require("../middlewares/validation");
 const router = (0, express_1.Router)();
-router.post("/", auth_1.authMiddleware, async (req, res) => {
+router.post("/", auth_1.authMiddleware, (0, validation_1.validate)(validation_1.kycSchema), async (req, res) => {
     try {
         const userId = req.user?.id;
         // 💡 1. Check if KYC already exists for this user
