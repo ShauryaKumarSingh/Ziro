@@ -27,10 +27,10 @@ router.post("/signup", validate(signupSchema), async (req: Request, res: Respons
     await newUser.save();
 
     res.status(201).json({ msg: "User registered successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
+  } catch (error: any) {
+  console.error("❌ SIGNUP CRASHED:", error.message);
+  res.status(500).json({ error: "Server error", details: error.message });
+}
 });
 
 // =================== LOGIN ===================
