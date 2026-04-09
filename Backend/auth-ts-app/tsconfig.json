@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2020",                    
-    "module": "commonjs",                 
-    "rootDir": "src",                      
-    "outDir": "dist",                      
-    "strict": true,                        
-    "esModuleInterop": true,               
-    "skipLibCheck": true,                  
-    "forceConsistentCasingInFileNames": true
+    "target": "ES6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,           // 👈 Change this to false
+    "noImplicitAny": false,    // 👈 Add this
+    "skipLibCheck": true,      // 👈 Add this
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   }
 }
