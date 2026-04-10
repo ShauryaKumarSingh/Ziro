@@ -20,6 +20,7 @@ import locationRoutes from './routes/location';
 import touristRoutes from './routes/tourist'; // ✅ 1. ADD THIS IMPORT
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 const corsOptions = {
