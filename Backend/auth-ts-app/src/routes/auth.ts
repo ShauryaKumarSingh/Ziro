@@ -79,4 +79,50 @@ router.get("/profile", authMiddleware, async (req: AuthRequest, res: Response) =
   }
 });
 
+// =================== POLICE LOGIN ===================
+router.post("/police-login", async (req: Request, res: Response) => {
+  try {
+    const { masterKey } = req.body;
+    console.log('🔐 Police login attempt:', { masterKey: masterKey ? 'provided' : 'missing', body: req.body });
+
+    // Check for master key (you can store this in env or database)
+    const POLICE_MASTER_KEY = process.env.POLICE_MASTER_KEY || "ziro-police-2024-master-key";
+    console.log('🔑 Expected master key:', POLICE_MASTER_KEY);
+
+    if (masterKey !== POLICE_MASTER_KEY) {
+      console.log('❌ Master key mismatch');
+      return res.status(401).json({ msg: "Invalid master key" });
+    }
+
+    console.log('✅ Master key valid, generating token');
+
+    // Generate JWT for police dashboard (longer expiry for dashboard)
+    const token = jwt.sign(
+      {
+        id: "police-dashboard",
+        role: "police",
+        permissions: ["dashboard", "sos-tracking", "emergency-response"]
+      },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    console.log('🎫 Token generated successfully');
+
+    res.json({
+      token,
+      user: {
+        id: "police-dashboard",
+        username: "Police Dashboard",
+        email: "police@ziro.com",
+        role: "police"
+      },
+      message: "Police dashboard access granted"
+    });
+  } catch (err) {
+    console.error('❌ Police login error:', err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 export default router;

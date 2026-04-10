@@ -104,34 +104,42 @@ app.use((req, res) => {
 
 // Socket.IO connection logic
 io.on('connection', (socket) => {
-  // 'socket' is defined here. All code using 'socket' MUST be inside these braces.
   console.log('✅ A client connected to sockets:', socket.id);
 
-  // We are keeping this open/unauthenticated for your demo so the map works instantly
-  socket.on('joinDashboard', () => {
-    console.log('📢 Police Dashboard joined the tracking room');
-    socket.join('dashboard-room');
+  // Handle JWT authentication for police dashboard
+  socket.on('authenticate', (data) => {
+    const { token } = data;
     
-    // We emit this so the dashboard frontend knows it's connected
-    socket.emit('authenticated'); 
-  });
+    if (!token) {
+      socket.emit('unauthorized', { message: 'No token provided' });
+      return;
+    }
 
-  socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret_change_in_production") as { id: string };
+      socket.data.userId = decoded.id;
+      socket.data.authenticated = true;
+      console.log('✅ Socket authenticated for user:', decoded.id);
+      socket.emit('authenticated');
+    } catch (err) {
+      console.error('❌ Socket authentication failed:', err);
+      socket.emit('unauthorized', { message: 'Invalid token' });
+    }
   });
 
   // Only allow authenticated clients to join dashboard
   socket.on('joinDashboard', () => {
-    if (!socket.data.userId) {
+    if (!socket.data.authenticated) {
       socket.emit('unauthorized', { message: 'Authentication required' });
       return;
     }
-    console.log('Dashboard joined by authenticated user');
+    console.log('📢 Police Dashboard joined by authenticated user:', socket.data.userId);
     socket.join('dashboard-room');
+    socket.emit('authenticated');
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    console.log('❌ Client disconnected:', socket.id);
   });
 });
 
@@ -145,7 +153,7 @@ mongoose
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-const PORT = parseInt(process.env.PORT || '5000');
+const PORT = parseInt(process.env.PORT || '5001');
 server.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 
 // Extend Express Request type
