@@ -1,0 +1,18 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": { 
+    "ignoreDeprecations": "6.0",
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+, "app/(tabs)/index.jsx", "app/+not-found.js", "app/_layout.js", "app/(tabs)/explore.js", "app/_layout.js", "app/(auth)/ZiroLoginScreen.js", "app/apis/authapi.js"  ]
+}
