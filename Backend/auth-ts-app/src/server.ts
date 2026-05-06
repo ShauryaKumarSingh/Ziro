@@ -135,7 +135,7 @@ io.on('connection', (socket) => {
     }
     console.log('📢 Police Dashboard joined by authenticated user:', socket.data.userId);
     socket.join('dashboard-room');
-    socket.emit('authenticated');
+    socket.emit('dashboard-joined');
   });
 
   socket.on('disconnect', () => {

@@ -29,44 +29,56 @@ router.post('/trigger', authMiddleware, validate(sosSchema), async (req: AuthReq
     });
 
     await newAlert.save();
+    req.io?.to('dashboard-room').emit('new-alert', newAlert);
+
     res.status(201).json({ msg: 'SOS alert triggered and recorded.', alert: newAlert });
   } catch (err: any) {
-    res.status(500).json({ error: "Server error during SOS trigger." });
+    console.error('🔥 SOS Trigger Error:', err);
+    res.status(500).json({ error: 'Server error during SOS trigger.' });
   }
 });
-
 
 // ENDPOINT 2: The "Police Dashboard" - Gets all active alerts
 // GET /api/sos/active
-
 router.get('/active', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const activeAlerts = await Alert.find({ status: 'active' })
-      .populate('userId', 'username email') // Get user's name and email
-      .sort({ createdAt: -1 }); // Show newest alerts first
+      .populate('userId', 'username email')
+      .sort({ createdAt: -1 });
 
     res.status(200).json(activeAlerts);
   } catch (err: any) {
-    console.error("🔥 Get Alerts Error:", err);
-    res.status(500).json({ error: "Server error fetching active alerts." });
+    console.error('🔥 Get Alerts Error:', err);
+    res.status(500).json({ error: 'Server error fetching active alerts.' });
   }
 });
-router.post('/trigger', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { latitude, longitude } = req.body;
-  const userId = req.user?.id; 
+
+// ENDPOINT 3: Stop an active SOS
+// PATCH /api/sos/stop/:sosId
+router.patch('/stop/:sosId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { sosId } = req.params;
+  const userId = req.user?.id;
+
+  if (!sosId) {
+    return res.status(400).json({ msg: 'SOS ID is required.' });
+  }
 
   try {
-    const user = await User.findById(userId);
-    // ...
-    const newAlert = new Alert({ /* ... */ });
-    await newAlert.save();
+    const alert = await Alert.findOne({ _id: sosId, userId, status: 'active' });
+    if (!alert) {
+      return res.status(404).json({ msg: 'Active SOS alert not found.' });
+    }
 
-    // ✅ NEW: Broadcast the new alert to all dashboards
-    req.io.to('dashboard-room').emit('new-alert', newAlert);
+    alert.status = 'resolved';
+    await alert.save();
 
-    res.status(201).json({ msg: 'SOS alert triggered and recorded.', alert: newAlert });
-  } catch (err) {
-    // ...
+    req.io?.to('dashboard-room').emit('stop-sos', { touristId: alert.touristId, sosId: alert._id });
+
+    res.status(200).json({ msg: 'SOS stopped and resolved.', alert });
+  } catch (err: any) {
+    console.error('🔥 Stop SOS Error:', err);
+    res.status(500).json({ error: 'Server error stopping SOS.' });
   }
 });
+
 export default router;
